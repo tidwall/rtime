@@ -50,8 +50,6 @@ func Now() time.Time {
 					cond.Broadcast()
 					mu.Unlock()
 				}
-			} else {
-				println(err.Error())
 			}
 		}(site)
 	}
