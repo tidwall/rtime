@@ -27,7 +27,7 @@ var rtime time.Time
 //
 func Now() time.Time {
 	res := make([]time.Time, 0, len(sites))
-	results := make(chan time.Time)
+	results := make(chan time.Time, len(sites))
 
 	// get as many dates as quickly as possible
 	client := http.Client{
