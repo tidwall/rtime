@@ -4,7 +4,7 @@
 
 Retrieve the current time from remote servers.
 
-It works by requesting timestamps from nine very popular hosts over https.
+It works by requesting timestamps from twelve very popular hosts over https.
 As soon as it gets at least three responses, it takes the two that have the
 smallest difference in time. And from those two it picks the one that is
 the oldest. Finally it ensures that the time is monotonic.
