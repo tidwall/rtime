@@ -26,10 +26,6 @@ var rtime time.Time
 //    }
 //
 func Now() time.Time {
-	start := time.Now()
-	defer func() {
-		println(time.Since(start).String())
-	}()
 	res := make([]time.Time, 0, len(sites))
 	results := make(chan time.Time, len(sites))
 
@@ -98,7 +94,6 @@ func Now() time.Time {
 			if res.After(rtime) {
 				rtime = res
 			}
-			println(time.Now().Sub(rtime).String())
 			return rtime
 		}
 	}
