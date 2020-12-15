@@ -17,17 +17,39 @@ go get -u github.com/tidwall/rtime
 
 ## Using
 
-The only function is `rtime.Now()`.
+Get the remote time with `rtime.Now()`.
 
 ```go
 tm := rtime.Now()
 if tm.IsZero() {
-    panic("time could not be retrieved")
+    panic("internet offline")
 }
 println(tm.String())
 // output: 2020-03-29 10:27:00 -0700 MST
 }
 ```
+
+## Keep in sync
+
+The `rtime.Now()` will be a little slow, usually 200 ms or more, because it
+must make a round trip to three or more remote servers to determine the correct
+time. 
+
+You make it fast like the built-in `time.Now()` by calling `rtime.Sync()` once
+at the start of your application.
+
+```go
+if err := rtime.Sync(); err != nil {
+    panic(err) // internet offline
+}
+// All following rtime.Now() calls will be quick and without the need for
+// checking the result.
+tm := rtime.Now()
+println(tm.String())
+```
+
+It's a good idea to call `rtime.Sync()` at the top of the `main()` or `init()`
+functions.
 
 ## Contact
 

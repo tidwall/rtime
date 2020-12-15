@@ -1,6 +1,7 @@
 package rtime
 
 import (
+	"errors"
 	"net/http"
 	"sort"
 	"sync"
@@ -13,9 +14,6 @@ var sites = []string{
 	"bing.com", "twitch.tv", "myshopify.com", "wikipedia.org",
 }
 
-var rmu sync.Mutex
-var rtime time.Time
-
 // Now returns the current remote time. If the remote time cannot be
 // retrieved then the zero value for Time is returned. It's a good idea to
 // test for zero after every call, such as:
@@ -26,6 +24,20 @@ var rtime time.Time
 //    }
 //
 func Now() time.Time {
+	smu.Lock()
+	if synced {
+		tm := sremote.Add(time.Since(slocal))
+		smu.Unlock()
+		return tm
+	}
+	smu.Unlock()
+	return now()
+}
+
+var rmu sync.Mutex
+var rtime time.Time
+
+func now() time.Time {
 	res := make([]time.Time, 0, len(sites))
 	results := make(chan time.Time, len(sites))
 
@@ -96,5 +108,73 @@ func Now() time.Time {
 			}
 			return rtime
 		}
+	}
+}
+
+var smu sync.Mutex
+var sid int
+var synced bool
+var sremote time.Time
+var slocal time.Time
+
+// Sync tells the application to keep rtime in sync with internet time. This
+// ensures that all following rtime.Now() calls are fast, accurate, and without
+// the need to check the result.
+//
+// Ideally you would call this at the top of your main() or init() function.
+//
+//    if err := rtime.Sync(); err != nil {
+//        ... internet offline, handle error or try again ...
+//        return
+//    }
+//    rtime.Now() // guaranteed to be a valid time
+//
+func Sync() error {
+	smu.Lock()
+	defer smu.Unlock()
+	if synced {
+		return nil
+	}
+	start := time.Now()
+	for {
+		tm := now()
+		if !tm.IsZero() {
+			sremote = tm
+			break
+		}
+		if time.Since(start) > time.Second*15 {
+			return errors.New("internet offline")
+		}
+		time.Sleep(time.Second / 15)
+	}
+	sid++
+	gsid := sid
+	synced = true
+	slocal = time.Now()
+	go func() {
+		for {
+			time.Sleep(time.Second * 15)
+			tm := now()
+			if !tm.IsZero() {
+				smu.Lock()
+				if gsid != sid {
+					smu.Unlock()
+					return
+				}
+				if tm.After(sremote) {
+					sremote = tm
+					slocal = time.Now()
+				}
+				smu.Unlock()
+			}
+		}
+	}()
+	return nil
+}
+
+// MustSync is like Sync but panics if the internet is offline.
+func MustSync() {
+	if err := Sync(); err != nil {
+		panic(err)
 	}
 }
