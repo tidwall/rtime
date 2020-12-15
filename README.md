@@ -35,8 +35,8 @@ The `rtime.Now()` will be a little slow, usually 200 ms or more, because it
 must make a round trip to three or more remote servers to determine the correct
 time. 
 
-You make it fast like the built-in `time.Now()` by calling `rtime.Sync()` once
-at the start of your application.
+You can make it fast like the built-in `time.Now()` by calling `rtime.Sync()`
+once at the start of your application.
 
 ```go
 if err := rtime.Sync(); err != nil {
