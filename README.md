@@ -29,7 +29,7 @@ println(tm.String())
 }
 ```
 
-## Keep in sync
+## Stay in sync
 
 The `rtime.Now()` will be a little slow, usually 200 ms or more, because it
 must make a round trip to three or more remote servers to determine the correct
@@ -40,10 +40,10 @@ at the start of your application.
 
 ```go
 if err := rtime.Sync(); err != nil {
-    panic(err) // internet offline
+    panic(err)
 }
-// All following rtime.Now() calls will be quick and without the need for
-// checking the result.
+// All following rtime.Now() calls will now be quick and without the need for
+// checking its result.
 tm := rtime.Now()
 println(tm.String())
 ```
